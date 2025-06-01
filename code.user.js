@@ -115,16 +115,19 @@
 
         if (url.startsWith('https://steamcommunity.com/market/')) {
             requestStorageHash = `${requestStorageHash}:steamcommunity.com/market`;
-            delayBetweenRequests = 1000;
+            delayBetweenRequests = 5000;
         }
 
         const lastRequest = JSON.parse(getLocalStorageItem(requestStorageHash) || JSON.stringify({ time: new Date(0), limited: false }));
         const timeSinceLastRequest = Date.now() - new Date(lastRequest.time).getTime();
 
-        delayBetweenRequests = lastRequest.limited ? 2.5 * 60 * 1000 : delayBetweenRequests;
+        delayBetweenRequests = lastRequest.limited ? 10 * 60 * 1000 : delayBetweenRequests;
 
         if (timeSinceLastRequest < delayBetweenRequests) {
-            setTimeout(() => request(...arguments), delayBetweenRequests - timeSinceLastRequest);
+            const noise = getRandomInt(0, 100);
+
+            setTimeout(() => request(...arguments), delayBetweenRequests - timeSinceLastRequest + noise);
+
             return;
         }
 
