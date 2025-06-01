@@ -124,7 +124,7 @@
         delayBetweenRequests = lastRequest.limited ? 10 * 60 * 1000 : delayBetweenRequests;
 
         if (timeSinceLastRequest < delayBetweenRequests) {
-            const noise = getRandomInt(0, 100);
+            const noise = getRandomInt(10, 100);
 
             setTimeout(() => request(...arguments), delayBetweenRequests - timeSinceLastRequest + noise);
 
