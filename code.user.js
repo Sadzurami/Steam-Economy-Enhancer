@@ -122,7 +122,7 @@
         const timeSinceLastRequest = Date.now() - new Date(lastRequest.time).getTime();
 
         delayBetweenRequests = lastRequest.limited ? 10 * 60 * 1000 : delayBetweenRequests;
-        lastRequest.pending = timeSinceLastRequest > 60 * 1000 ? false : lastRequest.pending;
+        lastRequest.pending = lastRequest.pending && timeSinceLastRequest < 60 * 1000; // Reset hang requests.
 
         if (lastRequest.pending || timeSinceLastRequest < delayBetweenRequests) {
             const noise = getRandomInt(10, 100);
