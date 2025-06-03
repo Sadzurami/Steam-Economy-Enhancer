@@ -171,6 +171,7 @@
                 setTimeout(() => callback(error), 0);
             },
             complete: () => {
+                lastRequest.time = new Date();
                 lastRequest.pending = false;
                 setLocalStorageItem(requestStorageHash, JSON.stringify(lastRequest));
             },
