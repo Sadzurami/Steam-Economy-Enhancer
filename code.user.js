@@ -125,20 +125,20 @@
         lastRequest.limited = lastRequest.limited && timeSinceLastRequest < 10 * 60 * 1000; // Reset rate limit requests.
         lastRequest.pending = lastRequest.pending && timeSinceLastRequest < 60 * 1000; // Reset hang requests.
 
+        if (lastRequest.limited) {
+            const error = new Error('Rate limit exceeded, please try again later.');
+            
+            setTimeout(() => callback(error), 0);
+
+            return;
+        }
+
         if (lastRequest.pending || timeSinceLastRequest < delayBetweenRequests) {
             const noise = getRandomInt(10, 100);
 
             const delay = lastRequest.pending ? 1000 : delayBetweenRequests - timeSinceLastRequest;
 
             setTimeout(() => request(...arguments), delay + noise);
-
-            return;
-        }
-
-        if (lastRequest.limited) {
-            const error = new Error('Rate limit exceeded, please try again later.');
-            
-            setTimeout(() => callback(error), 0);
 
             return;
         }
