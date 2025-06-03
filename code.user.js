@@ -118,20 +118,33 @@
             delayBetweenRequests = 5000;
         }
 
-        const lastRequest = JSON.parse(getLocalStorageItem(requestStorageHash) || JSON.stringify({ time: new Date(0), limited: false }));
+        const lastRequest = JSON.parse(getLocalStorageItem(requestStorageHash) || JSON.stringify({ time: new Date(0), pending: false, limited: false }));
         const timeSinceLastRequest = Date.now() - new Date(lastRequest.time).getTime();
 
         delayBetweenRequests = lastRequest.limited ? 10 * 60 * 1000 : delayBetweenRequests;
+        lastRequest.limited = lastRequest.limited && timeSinceLastRequest < 10 * 60 * 1000; // Reset rate limit requests.
+        lastRequest.pending = lastRequest.pending && timeSinceLastRequest < 60 * 1000; // Reset hang requests.
 
-        if (timeSinceLastRequest < delayBetweenRequests) {
+        if (lastRequest.limited) {
+            const error = new Error('Rate limit exceeded, please try again later.');
+            
+            setTimeout(() => callback(error), 0);
+
+            return;
+        }
+
+        if (lastRequest.pending || timeSinceLastRequest < delayBetweenRequests) {
             const noise = getRandomInt(10, 100);
 
-            setTimeout(() => request(...arguments), delayBetweenRequests - timeSinceLastRequest + noise);
+            const delay = lastRequest.pending ? 1000 : delayBetweenRequests - timeSinceLastRequest;
+
+            setTimeout(() => request(...arguments), delay + noise);
 
             return;
         }
 
         lastRequest.time = new Date();
+        lastRequest.pending = true;
         lastRequest.limited = false;
 
         setLocalStorageItem(requestStorageHash, JSON.stringify(lastRequest));
@@ -150,9 +163,9 @@
                     const error = new Error('Http error');
                     error.statusCode = xhr.status;
 
-                    callback(error, data);
+                   setTimeout(() => callback(error, data), 0);
                 } else {
-                    callback(null, data)
+                   setTimeout(() => callback(null, data), 0);
                 }
             },
             error: (xhr) => {
@@ -164,7 +177,12 @@
                 const error = new Error('Request failed');
                 error.statusCode = xhr.status;
 
-                callback(error);
+                setTimeout(() => callback(error), 0);
+            },
+            complete: () => {
+                lastRequest.time = new Date();
+                lastRequest.pending = false;
+                setLocalStorageItem(requestStorageHash, JSON.stringify(lastRequest));
             },
             dataType: options.responseType
         });
