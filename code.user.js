@@ -130,7 +130,9 @@
 
         // Add the request to the queue if another one is processing.
         if (request.pending || request.queue.length !== 0) {
-            request.queue.push(() => request(...arguments));
+            const method = options.priority ? 'unshift' : 'push';
+
+            request.queue[method](() => request(...arguments));
 
             return;
         }
