@@ -182,7 +182,7 @@
 
                 // Slow down market requests to avoid hitting the rate limits.
                 if (url.startsWith('https://steamcommunity.com/market/')) {
-                    delay = 1000;
+                    delay = 5000;
                 }
 
                 // Better to wait for a bit longer if we hit an error.
